@@ -1,0 +1,24 @@
+{
+  "short_name": "كاشير",
+  "name": "نظام كاشير POS المتطور",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "index.html",
+  "background_color": "#2563eb",
+  "display": "standalone",
+  "scope": "./",
+  "theme_color": "#2563eb",
+  "description": "نظام كاشير سريع يعمل بدون إنترنت بعد التثبيت",
+  "dir": "rtl",
+  "lang": "ar"
+}  
