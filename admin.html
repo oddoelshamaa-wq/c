@@ -2,7 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- هذا السطر ضروري جداً للموبايل ليقوم بتصغير المحتوى حسب الشاشة -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>لوحة التحكم - POS Master</title>
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -13,16 +14,57 @@
             --text-main: #f1f5f9; --text-muted: #94a3b8; --danger: #ef4444; --success: #10b981;
             --warning: #f59e0b; --border: #334155; --net-profit: #8b5cf6; --orange: #f97316;
         }
-        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Tajawal', sans-serif; background: var(--bg-dark); color: var(--text-main); height: 100vh; overflow: hidden; }
+
+        /* ===== MOBILE RESPONSIVE FIXES ===== */
+        @media (max-width: 768px) {
+            body { overflow: auto; height: auto; min-height: 100vh; }
+            #admin-app { flex-direction: column-reverse; height: auto; display: block; }
+            
+            /* Sidebar as a drawer */
+            .sidebar { 
+                position: fixed; top: 0; right: -100%; width: 280px; height: 100%; 
+                z-index: 5000; transition: 0.3s ease; box-shadow: -5px 0 20px rgba(0,0,0,0.5);
+            }
+            .sidebar.open { right: 0; }
+            
+            /* Overlay when sidebar is open */
+            .sidebar-overlay {
+                display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.6); z-index: 4000; backdrop-filter: blur(2px);
+            }
+            .sidebar-overlay.show { display: block; }
+
+            .content-area { padding: 15px; width: 100%; padding-top: 60px; } /* Padding top for fixed header */
+            
+            /* Mobile Header Button */
+            #mobile-header { 
+                display: flex !important; position: fixed; top: 0; left: 0; right: 0; 
+                height: 50px; background: var(--bg-card); border-bottom: 1px solid var(--border);
+                align-items: center; justify-content: space-between; padding: 0 15px; z-index: 3000;
+            }
+            
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .products-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            
+            /* Inputs full width on mobile */
+            .add-panel { flex-direction: column; align-items: stretch; }
+            .input-group { width: 100%; min-width: auto; }
+            
+            .table-container { overflow-x: auto; }
+            table { min-width: 600px; } /* Force scroll on table */
+        }
+        
+        #mobile-header { display: none; } /* Hidden on desktop */
 
         #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-dark); z-index: 9000; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; }
         .spinner { width: 50px; height: 50px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .loading-text { color: var(--text-muted); font-size: 1rem; text-align: center; line-height: 1.8; max-width: 400px; }
 
-        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; }
-        .toast { padding: 12px 28px; border-radius: 10px; color: white; font-weight: 600; opacity: 0; transform: translateY(-20px); transition: all 0.3s; font-family: 'Tajawal', sans-serif; pointer-events: auto; text-align: center; min-width: 280px; }
+        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; width: 90%; max-width: 350px; }
+        .toast { padding: 12px 20px; border-radius: 10px; color: white; font-weight: 600; opacity: 0; transform: translateY(-20px); transition: all 0.3s; font-family: 'Tajawal', sans-serif; pointer-events: auto; text-align: center; font-size: 0.9rem; }
         .toast.show { opacity: 1; transform: translateY(0); }
         .toast-success { background: var(--success); box-shadow: 0 4px 15px rgba(16,185,129,0.4); }
         .toast-error { background: var(--danger); box-shadow: 0 4px 15px rgba(239,68,68,0.4); }
@@ -34,51 +76,51 @@
         @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
 
         /* ===== Login ===== */
-        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); z-index: 2000; display: none; justify-content: center; align-items: center; }
-        .login-card { background: rgba(30,41,59,0.9); backdrop-filter: blur(10px); border: 1px solid var(--border); border-radius: 20px; padding: 30px; width: 480px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        #login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); z-index: 2000; display: none; justify-content: center; align-items: center; overflow-y: auto; padding: 20px 0;}
+        .login-card { background: rgba(30,41,59,0.95); backdrop-filter: blur(10px); border: 1px solid var(--border); border-radius: 20px; padding: 25px; width: 90%; max-width: 450px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); margin: auto; }
         .login-card h2 { margin-bottom: 5px; color: var(--primary); }
         .login-sub { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px; }
-        .users-login-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; max-height: 350px; overflow-y: auto; }
-        .user-login-btn { background: var(--bg-card); border: 2px solid var(--border); padding: 14px 10px; border-radius: 14px; cursor: pointer; transition: all 0.3s; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .users-login-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px; max-height: 250px; overflow-y: auto; }
+        .user-login-btn { background: var(--bg-card); border: 2px solid var(--border); padding: 14px 5px; border-radius: 14px; cursor: pointer; transition: all 0.3s; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+        .user-login-btn:active { transform: scale(0.95); }
         .user-login-btn:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 8px 20px rgba(99,102,241,0.2); }
-        .user-login-btn .uli-avatar { width: 46px; height: 46px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; color: white; }
-        .user-login-btn .uli-name { font-weight: 700; font-size: 0.95rem; }
-        .user-login-btn .uli-role { font-size: 0.75rem; padding: 2px 10px; border-radius: 20px; font-weight: 600; }
+        .user-login-btn .uli-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; color: white; }
+        .user-login-btn .uli-name { font-weight: 700; font-size: 0.9rem; }
+        .user-login-btn .uli-role { font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
         
-        /* أدوار النظام - تم إضافة الكاشير */
         .role-admin { background: rgba(239,68,68,0.2); color: #fca5a5; }
         .role-sales { background: rgba(99,102,241,0.2); color: #a5b4fc; }
         .role-reports { background: rgba(6,182,212,0.2); color: #67e8f9; }
-        .role-cashier { background: rgba(249,115,22,0.2); color: #fdba74; } /* كاشير */
+        .role-cashier { background: rgba(249,115,22,0.2); color: #fdba74; }
 
-        .phone-display { background: #000; color: #10b981; font-family: monospace; font-size: 2.2rem; padding: 15px; border-radius: 10px; margin-bottom: 10px; letter-spacing: 8px; min-height: 60px; }
+        .phone-display { background: #000; color: #10b981; font-family: monospace; font-size: 2rem; padding: 12px; border-radius: 10px; margin-bottom: 10px; letter-spacing: 5px; min-height: 55px; }
         .login-error { color: var(--danger); font-size: 0.85rem; min-height: 20px; margin-bottom: 10px; }
-        .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        .num-btn { background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border); font-size: 1.4rem; padding: 16px; border-radius: 12px; cursor: pointer; transition: 0.2s; font-family: 'Tajawal', sans-serif; }
+        .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .num-btn { background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border); font-size: 1.5rem; padding: 12px; border-radius: 12px; cursor: pointer; transition: 0.2s; font-family: 'Tajawal', sans-serif; }
+        .num-btn:active { background: var(--border); }
         .num-btn:hover { background: var(--primary); border-color: var(--primary); }
         .btn-call { background: var(--primary); border-color: var(--primary); color: white; }
         .btn-clear { background: rgba(239,68,68,0.2); color: var(--danger); border-color: var(--danger); }
 
-        #admin-app { display: none; height: 100vh; }
+        #admin-app { display: none; height: 100vh; flex-direction: row; }
         .sidebar { width: 280px; background: var(--bg-card); border-left: 1px solid var(--border); padding: 20px; display: flex; flex-direction: column; overflow-y: auto; }
-        .brand { font-size: 1.4rem; font-weight: 800; color: var(--primary); margin-bottom: 10px; }
+        .brand { font-size: 1.4rem; font-weight: 800; color: var(--primary); margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
 
-        /* بطاقة المستخدم الحالي */
-        .current-user-card { background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(6,182,212,0.08)); border: 1px solid rgba(99,102,241,0.3); border-radius: 14px; padding: 14px; margin-bottom: 15px; }
+        .current-user-card { background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(6,182,212,0.08)); border: 1px solid rgba(99,102,241,0.3); border-radius: 14px; padding: 12px; margin-bottom: 15px; }
         .cuc-row { display: flex; justify-content: space-between; align-items: center; }
-        .cuc-name { font-weight: 800; font-size: 1.1rem; }
-        .cuc-role { font-size: 0.75rem; padding: 3px 10px; border-radius: 20px; font-weight: 700; }
+        .cuc-name { font-weight: 800; font-size: 1rem; }
+        .cuc-role { font-size: 0.7rem; padding: 3px 8px; border-radius: 20px; font-weight: 700; }
 
         .day-date-card { background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(6,182,212,0.08)); border: 1px solid rgba(99,102,241,0.25); border-radius: 14px; padding: 12px; margin-bottom: 20px; text-align: center; transition: all 0.3s; }
         .day-date-card.ended { background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(185,28,28,0.08)); border-color: rgba(239,68,68,0.4); }
-        .day-date-card .label { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 3px; letter-spacing: 1px; }
-        .day-date-card .date-value { font-size: 0.95rem; font-weight: 800; color: var(--accent); }
+        .day-date-card .label { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 3px; letter-spacing: 1px; }
+        .day-date-card .date-value { font-size: 0.9rem; font-weight: 800; color: var(--accent); }
         .day-date-card.ended .date-value { color: #fca5a5; }
-        .day-date-card .day-num { font-size: 2.6rem; font-weight: 800; color: var(--primary); line-height: 1; margin: 3px 0; }
+        .day-date-card .day-num { font-size: 2.2rem; font-weight: 800; color: var(--primary); line-height: 1; margin: 5px 0; }
         .day-date-card.ended .day-num { color: var(--danger); }
         .day-date-card .day-name { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
 
-        .nav-item { padding: 11px 14px; margin-bottom: 6px; border-radius: 10px; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; gap: 10px; transition: 0.2s; font-weight: 600; font-size: 0.95rem; }
+        .nav-item { padding: 12px; margin-bottom: 6px; border-radius: 10px; cursor: pointer; color: var(--text-muted); display: flex; align-items: center; gap: 10px; transition: 0.2s; font-weight: 600; font-size: 0.95rem; }
         .nav-item:hover, .nav-item.active { background: var(--primary); color: white; }
         .nav-item.nav-disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
         .nav-item-end-day { background: rgba(239,68,68,0.15) !important; color: var(--danger) !important; border: 1px solid rgba(239,68,68,0.3); }
@@ -88,146 +130,73 @@
 
         .content-area { flex: 1; overflow-y: auto; padding: 30px; background: var(--bg-dark); position: relative; }
 
-        #day-ended-banner { display: none; position: sticky; top: 0; z-index: 100; background: linear-gradient(135deg, #7f1d1d, #991b1b, #b91c1c); color: white; padding: 18px 25px; border-radius: 14px; margin-bottom: 25px; box-shadow: 0 8px 25px rgba(185,28,28,0.4); border: 2px solid #fca5a5; animation: bannerPulse 3s ease-in-out infinite; }
-        @keyframes bannerPulse { 0%,100% { box-shadow: 0 8px 25px rgba(185,28,28,0.4); } 50% { box-shadow: 0 8px 35px rgba(185,28,28,0.7); } }
-        #day-ended-banner h3 { font-size: 1.2rem; margin-bottom: 6px; }
-        #day-ended-banner p { font-size: 0.9rem; opacity: 0.9; }
-        #day-ended-banner .banner-date { color: #fca5a5; font-weight: bold; }
-        #day-ended-banner .banner-next { color: #86efac; font-weight: bold; }
+        #day-ended-banner { display: none; margin-bottom: 25px; background: linear-gradient(135deg, #7f1d1d, #991b1b, #b91c1c); color: white; padding: 15px; border-radius: 14px; border: 2px solid #fca5a5; text-align: center; }
+        #day-ended-banner h3 { font-size: 1.1rem; margin-bottom: 5px; }
+        #day-ended-banner p { font-size: 0.85rem; opacity: 0.9; }
+        #day-active-badge { display: none; text-align: center; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: var(--success); padding: 8px; border-radius: 8px; margin-bottom: 20px; font-weight: bold; }
 
-        #day-active-badge { display: none; position: sticky; top: 0; z-index: 100; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: var(--success); padding: 10px 20px; border-radius: 10px; margin-bottom: 20px; font-size: 0.95rem; font-weight: 700; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; flex-wrap: wrap; gap: 10px; }
+        .header h2 { font-size: 1.5rem; }
+        
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: var(--bg-card); padding: 15px; border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 5px; }
+        .stat-value { font-size: 1.5rem; font-weight: bold; }
+        .stat-label { color: var(--text-muted); font-size: 0.8rem; }
 
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 10px; }
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 18px; margin-bottom: 30px; }
-        .stat-card { background: var(--bg-card); padding: 18px; border-radius: 15px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
-        .stat-value { font-size: 1.7rem; font-weight: bold; }
-        .stat-label { color: var(--text-muted); font-size: 0.88rem; }
-
-        .add-panel { background: var(--bg-card); padding: 18px; border-radius: 15px; border: 1px solid var(--border); margin-bottom: 18px; display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-end; }
+        .add-panel { background: var(--bg-card); padding: 15px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
         .input-group { flex: 1; min-width: 140px; }
-        .input-group label { display: block; color: var(--text-muted); margin-bottom: 4px; font-size: 0.83rem; }
-        .input-field, .date-field { width: 100%; background: var(--bg-dark); border: 1px solid var(--border); color: white; padding: 9px; border-radius: 8px; font-family: 'Tajawal', sans-serif; font-size: 0.93rem; }
+        .input-group label { display: block; color: var(--text-muted); margin-bottom: 4px; font-size: 0.8rem; }
+        .input-field, .date-field { width: 100%; background: var(--bg-dark); border: 1px solid var(--border); color: white; padding: 10px; border-radius: 8px; font-family: 'Tajawal', sans-serif; font-size: 0.9rem; }
         select.input-field { cursor: pointer; }
-        .btn-add { background: var(--success); color: white; padding: 9px 18px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Tajawal', sans-serif; transition: 0.2s; white-space: nowrap; }
-        .btn-add:hover { opacity: 0.85; }
+        .btn-add { background: var(--success); color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-family: 'Tajawal', sans-serif; transition: 0.2s; white-space: nowrap; height: 42px; }
+        .btn-add:active { transform: scale(0.98); }
 
-        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 18px; }
-        .product-card { padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-card); transition: 0.3s; }
-        .product-card:hover { transform: translateY(-4px); border-color: var(--primary); }
-        .p-name { font-weight: bold; margin-bottom: 4px; }
-        .p-cat { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 3px; }
-        .p-price { color: var(--accent); font-weight: bold; }
-        .p-actions { margin-top: 10px; display: flex; gap: 8px; }
-        .btn-sm { padding: 5px 10px; border-radius: 6px; border: none; color: white; cursor: pointer; font-family: 'Tajawal', sans-serif; font-size: 0.83rem; }
-        .btn-edit { background: var(--primary); flex: 1; }
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; }
+        .product-card { padding: 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-card); transition: 0.3s; }
+        .p-name { font-weight: bold; margin-bottom: 4px; font-size: 0.95rem; }
+        .p-cat { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 3px; }
+        .p-price { color: var(--accent); font-weight: bold; font-size: 1.1rem; }
+        .p-actions { margin-top: 10px; display: flex; gap: 6px; }
+        .btn-sm { padding: 6px 10px; border-radius: 6px; border: none; color: white; cursor: pointer; font-family: 'Tajawal', sans-serif; font-size: 0.8rem; flex: 1; }
+        .btn-edit { background: var(--primary); }
         .btn-del { background: var(--danger); }
 
-        .table-container { background: var(--bg-card); border-radius: 15px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 28px; }
-        .table-container h3 { padding: 14px 14px 0; color: var(--text-muted); font-size: 0.93rem; }
+        .table-container { background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; margin-bottom: 20px; }
+        .table-container h3 { padding: 12px; color: var(--text-muted); font-size: 0.9rem; }
         table { width: 100%; border-collapse: collapse; }
-        th { background: rgba(255,255,255,0.05); color: var(--text-muted); text-align: right; padding: 13px; font-size: 0.88rem; }
-        td { padding: 13px; border-bottom: 1px solid var(--border); color: var(--text-main); }
+        th { background: rgba(255,255,255,0.05); color: var(--text-muted); text-align: right; padding: 10px; font-size: 0.85rem; white-space: nowrap; }
+        td { padding: 10px; border-bottom: 1px solid var(--border); color: var(--text-main); font-size: 0.9rem; }
         tr:hover td { background: rgba(255,255,255,0.02); }
         tr[data-clickable] td { cursor: pointer; }
-        .status-badge { padding: 3px 8px; border-radius: 4px; font-size: 0.78rem; font-weight: bold; }
+        .status-badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
         .status-completed { background: rgba(16,185,129,0.2); color: #10b981; }
         .status-cancelled { background: rgba(239,68,68,0.2); color: #ef4444; }
-        .no-data-row td { text-align: center; color: var(--text-muted); padding: 28px; }
+        .no-data-row td { text-align: center; color: var(--text-muted); padding: 20px; }
 
-        .modal { display: none; position: fixed; z-index: 3000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
-        .modal-content { background: var(--bg-card); padding: 28px; border-radius: 20px; width: 500px; max-width: 90vw; position: relative; max-height: 90vh; overflow-y: auto; }
-        .close-modal { position: absolute; left: 18px; top: 18px; font-size: 26px; cursor: pointer; color: var(--text-muted); background: none; border: none; }
-        .close-modal:hover { color: white; }
-        .order-detail-row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid var(--border); }
-        .edit-modal-fields { display: flex; flex-direction: column; gap: 14px; margin: 18px 0; }
+        .modal { display: none; position: fixed; z-index: 6000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); align-items: center; justify-content: center; padding: 20px; }
+        .modal-content { background: var(--bg-card); padding: 25px; border-radius: 20px; width: 100%; max-width: 500px; position: relative; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
+        .close-modal { position: absolute; left: 15px; top: 15px; font-size: 24px; cursor: pointer; color: var(--text-muted); background: none; border: none; }
+        .order-detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        .edit-modal-fields { display: flex; flex-direction: column; gap: 15px; margin: 15px 0; }
         .edit-modal-fields .input-group { min-width: 100%; }
 
-        .confirm-modal-content { background: var(--bg-card); padding: 28px; border-radius: 20px; width: 460px; max-width: 90vw; text-align: center; }
-        .confirm-msg { margin-bottom: 22px; font-size: 1rem; line-height: 2; color: var(--text-main); white-space: pre-line; }
-        .confirm-msg .old-date { color: var(--danger); font-weight: 800; text-decoration: line-through; }
-        .confirm-msg .new-date { color: var(--success); font-weight: 800; font-size: 1.2rem; }
-        .confirm-msg .arrow { color: var(--accent); font-size: 1.3rem; margin: 0 8px; }
-        .confirm-btns { display: flex; gap: 12px; }
-        .confirm-btns button { flex: 1; padding: 13px; border: none; border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer; font-family: 'Tajawal', sans-serif; transition: 0.2s; }
+        .confirm-modal-content { background: var(--bg-card); padding: 25px; border-radius: 20px; width: 100%; max-width: 400px; text-align: center; }
+        .confirm-msg { margin-bottom: 20px; font-size: 1rem; line-height: 1.8; color: var(--text-main); white-space: pre-line; }
+        .confirm-msg .new-date { color: var(--success); font-weight: 800; font-size: 1.1rem; }
+        .confirm-btns { display: flex; gap: 10px; }
+        .confirm-btns button { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: bold; font-size: 1rem; cursor: pointer; font-family: 'Tajawal', sans-serif; }
         .confirm-yes { background: var(--success); color: white; }
-        .confirm-yes:hover { opacity: 0.85; }
         .confirm-no { background: var(--border); color: var(--text-main); }
-        .confirm-no:hover { background: #475569; }
 
-        .disabled-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.88); z-index: 50; display: none; justify-content: center; align-items: center; border-radius: 15px; }
+        .disabled-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.9); z-index: 50; display: none; justify-content: center; align-items: center; border-radius: 15px; }
         .disabled-overlay.show { display: flex; }
-        .disabled-overlay-text { text-align: center; color: var(--danger); font-size: 1.2rem; font-weight: bold; }
-        .disabled-overlay-text small { display: block; color: var(--text-muted); font-size: 0.85rem; margin-top: 8px; font-weight: 400; }
+        .disabled-overlay-text { text-align: center; color: var(--danger); font-size: 1.1rem; font-weight: bold; }
+        .disabled-overlay-text small { display: block; color: var(--text-muted); font-size: 0.8rem; margin-top: 5px; font-weight: 400; }
 
         .hidden { display: none !important; }
         .flex { display: flex !important; }
-        ::-webkit-scrollbar { width: 7px; }
-        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-        /* تنسيقات خاصة بالجوال فقط */
-@media (max-width: 768px) {
-    /* تعديل شاشة تسجيل الدخول */
-    .login-card {
-        width: 95%;
-        padding: 15px;
-    }
-    .users-login-grid {
-        grid-template-columns: 1fr; /* مستخدم واحد في الصف */
-    }
-
-    /* تحويل القائمة الجانبية إلى قائمة مخفية تظهر عند الضغط */
-    .sidebar {
-        position: fixed;
-        right: -280px; /* مخفية خارج الشاشة */
-        top: 0;
-        bottom: 0;
-        z-index: 999;
-        transition: 0.3s;
-        box-shadow: -5px 0 15px rgba(0,0,0,0.5);
-    }
-    .sidebar.active {
-        right: 0; /* تظهر عند إضافة كلاس active */
-    }
-
-    /* زر القائمة للجوال */
-    #mobile-menu-btn {
-        display: block;
-        background: var(--primary);
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 8px;
-        margin-bottom: 15px;
-        font-family: 'Tajawal';
-        font-weight: bold;
-        cursor: pointer;
-    }
-
-    /* تعديل الجداول لتكون قابلة للتمرير */
-    .table-container {
-        overflow-x: auto;
-    }
-    table {
-        min-width: 600px; /* لضمان عدم تداخل النصوص */
-    }
-
-    /* تعديل توزيع الإحصائيات */
-    .stats-grid {
-        grid-template-columns: 1fr 1fr; /* بطاقتين في الصف */
-    }
-
-    /* تعديل المودال (النافذة المنبثقة) */
-    .modal-content {
-        width: 95%;
-        padding: 15px;
-    }
-}
-
-/* إخفاء زر الجوال في شاشات الكمبيوتر */
-@media (min-width: 769px) {
-    #mobile-menu-btn {
-        display: none;
-    }
-}
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
     </style>
 </head>
 <body>
@@ -235,6 +204,9 @@
     <div id="loading-overlay"><div class="spinner"></div><div class="loading-text" id="loading-text">جاري الاتصال...</div></div>
     <div id="toast-container"></div>
     <div id="conn-status" style="display:none;"><div class="conn-dot" id="conn-dot"></div><span id="conn-text">متصل</span></div>
+    
+    <!-- طبقة تعتيم خلف القائمة في الموبايل -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()" id="sidebar-overlay"></div>
 
     <div id="confirm-modal" class="modal">
         <div class="confirm-modal-content">
@@ -250,10 +222,10 @@
     <div id="login-overlay">
         <div class="login-card">
             <h2>🔐 تسجيل الدخول</h2>
-            <div class="login-sub">اختر حسابك للمتابعة (للإدارة فقط)</div>
+            <div class="login-sub">اختر حسابك للمتابعة</div>
             <div id="user-selection" class="users-login-grid"></div>
             <div id="keypad-area" class="hidden">
-                <button onclick="backToUsers()" style="background:none; border:1px solid var(--border); color:var(--text-muted); padding:5px 12px; border-radius:8px; cursor:pointer; margin-bottom:10px; font-family:'Tajawal',sans-serif;">🔙 عودة</button>
+                <button onclick="backToUsers()" style="background:none; border:1px solid var(--border); color:var(--text-muted); padding:6px 15px; border-radius:8px; cursor:pointer; margin-bottom:10px; font-family:'Tajawal',sans-serif;">🔙 عودة</button>
                 <div class="login-sub" style="margin-bottom:8px;">كلمة المرور لـ <b id="selected-user-name" style="color:var(--primary)"></b></div>
                 <div class="phone-display" id="pass-display"></div>
                 <div class="login-error" id="login-error"></div>
@@ -271,13 +243,13 @@
     <div id="order-modal" class="modal">
         <div class="modal-content">
             <button class="close-modal" onclick="closeOrderModal()">&times;</button>
-            <h2 style="margin-bottom:18px; color:var(--primary);">تفاصيل الطلب #<span id="modal-order-id"></span></h2>
+            <h2 style="margin-bottom:15px; color:var(--primary);">تفاصيل الطلب #<span id="modal-order-id"></span></h2>
             <div class="order-detail-row"><span>التاريخ:</span><span id="modal-date" style="color:var(--text-muted)"></span></div>
             <div class="order-detail-row"><span>الكاشير:</span><span id="modal-cashier"></span></div>
             <div class="order-detail-row"><span>الحالة:</span><span id="modal-status"></span></div>
-            <div style="margin:18px 0;border-top:1px solid var(--border);padding-top:10px;"><h4 style="margin-bottom:10px;">المنتجات:</h4><div id="modal-items-list" style="max-height:250px;overflow-y:auto;"></div></div>
-            <div class="order-detail-row" style="border:none;font-size:1.4rem;font-weight:bold;color:var(--accent);"><span>الإجمالي:</span><span id="modal-total"></span></div>
-            <div style="margin-top:18px;" id="modal-cancel-area"><button class="btn-del" style="width:100%;padding:14px;border-radius:10px;font-size:1rem;font-family:'Tajawal',sans-serif;" onclick="cancelOrderFromModal()">🗑️ إلغاء الطلب</button></div>
+            <div style="margin:15px 0;border-top:1px solid var(--border);padding-top:10px;"><h4 style="margin-bottom:10px;">المنتجات:</h4><div id="modal-items-list" style="max-height:200px;overflow-y:auto;"></div></div>
+            <div class="order-detail-row" style="border:none;font-size:1.3rem;font-weight:bold;color:var(--accent);"><span>الإجمالي:</span><span id="modal-total"></span></div>
+            <div style="margin-top:15px;" id="modal-cancel-area"><button class="btn-del" style="width:100%;padding:12px;border-radius:10px;font-size:1rem;font-family:'Tajawal',sans-serif;" onclick="cancelOrderFromModal()">🗑️ إلغاء الطلب</button></div>
         </div>
     </div>
 
@@ -290,16 +262,29 @@
                 <div class="input-group"><label>السعر</label><input type="number" id="edit-price" class="input-field" step="0.01"></div>
                 <div class="input-group"><label>القسم</label><select id="edit-cat" class="input-field"></select></div>
             </div>
-            <div style="display:flex;gap:10px;"><button class="btn-add" style="flex:1;font-size:1rem;" onclick="saveEditProduct()">حفظ</button><button class="btn-del" style="padding:9px 18px;border-radius:8px;font-family:'Tajawal',sans-serif;" onclick="closeEditModal()">إلغاء</button></div>
+            <div style="display:flex;gap:10px;"><button class="btn-add" style="flex:1;font-size:1rem;" onclick="saveEditProduct()">حفظ</button><button class="btn-del" style="padding:10px 20px;border-radius:8px;font-family:'Tajawal',sans-serif;" onclick="closeEditModal()">إلغاء</button></div>
         </div>
     </div>
 
     <!-- ===== APP ===== -->
     <div id="admin-app" class="hidden">
-        <aside class="sidebar">
-            <div class="brand">⚡ POS Master</div>
+        
+        <!-- Header موبايل -->
+        <div id="mobile-header">
+            <div style="font-weight:800; color:var(--primary); font-size:1.1rem;">POS Master</div>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <span id="header-user-role" style="font-size:0.7rem; color:var(--text-muted); background:var(--bg-dark); padding:2px 6px; border-radius:4px;"></span>
+                <button onclick="toggleSidebar()" style="background:none; border:none; color:var(--text-main); font-size:1.5rem;">☰</button>
+            </div>
+        </div>
 
-            <!-- بطاقة المستخدم الحالي -->
+        <aside class="sidebar" id="sidebar">
+            <div class="brand">
+                <span>⚡ POS Master</span>
+                <!-- زر إغلاق القائمة في الموبايل -->
+                <span onclick="toggleSidebar()" style="cursor:pointer; display:none;" id="close-sidebar-btn">&times;</span>
+            </div>
+
             <div class="current-user-card">
                 <div class="cuc-row"><span class="cuc-name" id="cuc-name">--</span><span class="cuc-role" id="cuc-role">--</span></div>
             </div>
@@ -313,28 +298,27 @@
 
             <div class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard', this)">📊 نظرة عامة</div>
             <div class="nav-item" id="nav-products" onclick="switchTab('products', this)">📦 المنتجات</div>
-            <div class="nav-item" id="nav-sales" onclick="switchTab('sales', this)">🛒 التقارير والمصروفات</div>
-            <div class="nav-item" id="nav-users" onclick="switchTab('users', this)">👥 المستخدمين والصلاحيات</div>
+            <div class="nav-item" id="nav-sales" onclick="switchTab('sales', this)">🛒 التقارير</div>
+            <div class="nav-item" id="nav-users" onclick="switchTab('users', this)">👥 المستخدمين</div>
 
-            <div id="end-day-btn-wrap" style="margin-top:18px;">
+            <div id="end-day-btn-wrap" style="margin-top:15px;">
                 <div class="nav-item nav-item-end-day" onclick="endDay()">🔒 إنهاء يوم العمل</div>
             </div>
-            <div id="start-day-btn-wrap" class="hidden" style="margin-top:18px;">
+            <div id="start-day-btn-wrap" class="hidden" style="margin-top:15px;">
                 <div class="nav-item nav-item-start-day" onclick="startNewDay()">🔓 بدء يوم جديد</div>
             </div>
 
-            <div style="margin-top:auto;padding-top:18px;border-top:1px solid var(--border);">
-                <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:10px;text-align:center;" id="day-status-sidebar">متصل ☁️</div>
+            <div style="margin-top:auto;padding-top:15px;border-top:1px solid var(--border);">
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:10px;text-align:center;" id="day-status-sidebar">متصل ☁️</div>
                 <div class="nav-item" style="background:rgba(239,68,68,0.1);color:var(--danger);" onclick="logout()">🚪 تسجيل خروج</div>
             </div>
         </aside>
+
         <main class="content-area">
             <div id="day-ended-banner">
-                <!-- أضف هذا الزر داخل content-area في الأعلى -->
-<button id="mobile-menu-btn" class="mobile-only" onclick="toggleSidebar()">☰ القائمة</button>
                 <h3>🔒 يوم العمل منتهي</h3>
-                <p>تم إنهاء يوم: <span class="banner-date" id="banner-end-date"></span></p>
-                <p>اليوم التالي: <span class="banner-next" id="banner-next-date"></span></p>
+                <p>تم إنهاء يوم: <span id="banner-end-date"></span></p>
+                <p>اليوم التالي: <span id="banner-next-date"></span></p>
             </div>
             <div id="day-active-badge">✅ يوم العمل مفتوح - <span id="active-date-badge"></span></div>
 
@@ -347,65 +331,60 @@
                     <div class="stat-card" style="border-right:3px solid var(--warning);"><div class="stat-value" style="color:var(--warning)" id="d-expenses">0</div><div class="stat-label">مصروفات اليوم</div></div>
                     <div class="stat-card" style="border-right:3px solid var(--net-profit);"><div class="stat-value" style="color:var(--net-profit)" id="d-net">0</div><div class="stat-label">صافي الربح</div></div>
                 </div>
-                <h3 style="margin-bottom:14px;color:var(--text-muted);">آخر 10 عمليات بيع</h3>
+                <h3 style="margin-bottom:12px;color:var(--text-muted);">آخر 10 عمليات بيع</h3>
                 <div class="table-container"><table><thead><tr><th>رقم</th><th>فاتورة</th><th>الكاشير</th><th>الوقت</th><th>الحالة</th><th>القيمة</th></tr></thead><tbody id="recent-sales-body"></tbody></table></div>
             </div>
 
             <div id="view-products" class="hidden" style="position:relative;">
-                <div class="disabled-overlay" id="products-overlay"><div class="disabled-overlay-text">⛔ ليس لديك صلاحية لهذا القسم<small>تواصل مع المدير</small></div></div>
+                <div class="disabled-overlay" id="products-overlay"><div class="disabled-overlay-text">⛔ ليس لديك صلاحية<small>تواصل مع المدير</small></div></div>
                 <div class="header"><h2>إدارة المنتجات</h2></div>
                 <div class="add-panel"><div class="input-group"><label>بحث</label><input type="text" id="search-prod" class="input-field" placeholder="بحث بالاسم..." oninput="filterProducts()"></div><div class="input-group"><label>الاسم</label><input type="text" id="new-name" class="input-field" placeholder="اسم المنتج"></div><div class="input-group"><label>السعر</label><input type="number" id="new-price" class="input-field" placeholder="0.00" step="0.01"></div><div class="input-group"><label>القسم</label><select id="new-cat" class="input-field"></select></div><button class="btn-add" onclick="addProduct()">➕ إضافة</button></div>
-                <div class="add-panel" style="padding:14px;"><div class="input-group" style="min-width:180px;"><label>قسم جديد</label><input type="text" id="new-cat-name" class="input-field" placeholder="اسم القسم"></div><button class="btn-add" style="background:var(--primary);align-self:flex-end;" onclick="addCategory()">+ إضافة قسم</button></div>
-                <div id="cat-tags-container" style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;"></div>
+                <div class="add-panel" style="padding:12px;"><div class="input-group"><label>قسم جديد</label><input type="text" id="new-cat-name" class="input-field" placeholder="اسم القسم"></div><button class="btn-add" style="background:var(--primary);align-self:flex-end;" onclick="addCategory()">+ إضافة قسم</button></div>
+                <div id="cat-tags-container" style="display:flex;gap:6px;margin-bottom:15px;flex-wrap:wrap;"></div>
                 <div class="products-grid" id="admin-products-grid"></div>
             </div>
 
             <div id="view-sales" class="hidden">
                 <div class="header"><h2>التقارير والمصروفات</h2></div>
-                <div class="stat-card" style="margin-bottom:18px;flex-direction:row;align-items:center;gap:14px;flex-wrap:wrap;">
-                    <label style="font-weight:bold;color:var(--text-muted)">📅 من:</label><input type="date" id="date-start" class="date-field" style="width:auto;" onchange="loadReportData()">
+                <div class="stat-card" style="margin-bottom:15px;flex-direction:row;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <label style="font-weight:bold;color:var(--text-muted);font-size:0.8rem;">📅 من:</label><input type="date" id="date-start" class="date-field" style="width:auto;" onchange="loadReportData()">
                     <span style="font-weight:bold;color:var(--text-muted)">إلى:</span><input type="date" id="date-end" class="date-field" style="width:auto;" onchange="loadReportData()">
-                    <button class="btn-sm" onclick="setRange('today')" style="background:var(--primary);color:white;padding:7px 12px;border-radius:8px;">اليوم</button>
-                    <button class="btn-sm" onclick="setRange('week')" style="background:var(--primary);color:white;padding:7px 12px;border-radius:8px;">الأسبوع</button>
-                    <button class="btn-sm" onclick="setRange('month')" style="background:var(--primary);color:white;padding:7px 12px;border-radius:8px;">الشهر</button>
-                    <button class="btn-sm" onclick="setRange('all')" style="background:var(--warning);color:#000;padding:7px 12px;border-radius:8px;">الكل</button>
-                    <span id="report-range-label" style="color:var(--accent);font-weight:bold;width:100%;text-align:left;margin-top:8px;"></span>
+                    <div style="display:flex; gap:5px; width:100%; margin-top:8px;">
+                        <button class="btn-sm" onclick="setRange('today')" style="background:var(--primary);color:white;padding:6px 10px;border-radius:6px;">اليوم</button>
+                        <button class="btn-sm" onclick="setRange('week')" style="background:var(--primary);color:white;padding:6px 10px;border-radius:6px;">الأسبوع</button>
+                        <button class="btn-sm" onclick="setRange('month')" style="background:var(--primary);color:white;padding:6px 10px;border-radius:6px;">الشهر</button>
+                        <button class="btn-sm" onclick="setRange('all')" style="background:var(--warning);color:#000;padding:6px 10px;border-radius:6px;">الكل</button>
+                    </div>
                 </div>
                 <div class="stats-grid">
                     <div class="stat-card" style="border-color:var(--success)"><div class="stat-value" style="color:var(--success)" id="rep-revenue">0</div><div class="stat-label">الإيرادات</div></div>
                     <div class="stat-card" style="border-color:var(--danger)"><div class="stat-value" style="color:var(--danger)" id="rep-expenses">0</div><div class="stat-label">المصروفات</div></div>
                     <div class="stat-card" style="border-color:var(--accent)"><div class="stat-value" style="color:var(--accent)" id="rep-net">0</div><div class="stat-label">صافي الربح</div></div>
-                    <div class="stat-card" style="border-color:var(--warning)"><div class="stat-value" style="color:var(--warning)" id="rep-sandwiches">0</div><div class="stat-label">السندوتشات</div></div>
                 </div>
                 <div id="expenses-add-panel" class="add-panel" style="border-color:var(--danger)"><div class="input-group"><label>وصف المصروف</label><input type="text" id="exp-desc" class="input-field" placeholder="مثلاً: مشتريات"></div><div class="input-group"><label>المبلغ</label><input type="number" id="exp-amount" class="input-field" placeholder="0.00" step="0.01"></div><button class="btn-add" style="background:var(--danger)" onclick="addExpense()">➕ إضافة مصروف</button></div>
-                <h3 style="margin-bottom:14px;color:var(--text-muted)">📋 المبيعات</h3>
+                <h3 style="margin-bottom:10px;color:var(--text-muted)">📋 المبيعات</h3>
                 <div class="table-container"><table><thead><tr><th>رقم</th><th>فاتورة</th><th>الكاشير</th><th>التاريخ</th><th>التفاصيل</th><th>القيمة</th><th>الحالة</th></tr></thead><tbody id="day-sales-body"></tbody></table></div>
-                <h3 style="margin-bottom:14px;color:var(--text-muted)">💸 المصروفات</h3>
+                <h3 style="margin-bottom:10px;color:var(--text-muted)">💸 المصروفات</h3>
                 <div class="table-container"><table><thead><tr><th>الوصف</th><th>المبلغ</th><th>التاريخ</th><th>حذف</th></tr></thead><tbody id="day-expenses-body"></tbody></table></div>
-                <h3 style="margin-bottom:14px;color:var(--text-muted)">🚫 الملغاة</h3>
+                <h3 style="margin-bottom:10px;color:var(--text-muted)">🚫 الملغاة</h3>
                 <div class="table-container"><table><thead><tr><th>رقم</th><th>فاتورة</th><th>التاريخ</th><th>الكاشير</th><th>القيمة</th></tr></thead><tbody id="cancelled-sales-body"></tbody></table></div>
             </div>
 
             <div id="view-users" class="hidden" style="position:relative;">
-                <div class="disabled-overlay" id="users-overlay"><div class="disabled-overlay-text">⛔ ليس لديك صلاحية لهذا القسم<small>تواصل مع المدير</small></div></div>
+                <div class="disabled-overlay" id="users-overlay"><div class="disabled-overlay-text">⛔ ليس لديك صلاحية<small>تواصل مع المدير</small></div></div>
                 <div class="header"><h2>👥 المستخدمين والصلاحيات</h2></div>
-                <!-- جدول الصلاحيات -->
-                <div class="stat-card" style="margin-bottom:20px;padding:18px;border-color:var(--primary);">
-                    <div style="font-weight:800;font-size:1rem;margin-bottom:12px;color:var(--primary);">📋 جدول الصلاحيات</div>
-                    <table style="width:100%;font-size:0.85rem;">
-                        <thead><tr style="border-bottom:2px solid var(--border);"><th style="padding:8px;color:var(--text-muted);">الصلاحية</th><th style="padding:8px;color:var(--danger);">مدير كامل</th><th style="padding:8px;color:var(--accent);">مدير مبيعات</th><th style="padding:8px;color:var(--success);">مشاهد تقارير</th><th style="padding:8px;color:var(--orange);">كاشير</th></tr></thead>
+                <div class="stat-card" style="margin-bottom:15px;padding:15px;border-color:var(--primary); overflow-x:auto;">
+                    <table style="width:100%;font-size:0.8rem;min-width:500px;">
+                        <thead><tr style="border-bottom:2px solid var(--border);"><th style="padding:5px;color:var(--text-muted);">الصلاحية</th><th style="padding:5px;color:var(--danger);">مدير</th><th style="padding:5px;color:var(--accent);">مبيعات</th><th style="padding:5px;color:var(--success);">تقارير</th><th style="padding:5px;color:var(--orange);">كاشير</th></tr></thead>
                         <tbody>
-                            <tr><td style="padding:6px 8px;">نظرة عامة</td><td style="padding:6px 8px;text-align:center;">✅</td><td style="padding:6px 8px;text-align:center;">✅</td><td style="padding:6px 8px;text-align:center;">✅</td><td style="padding:6px 8px;text-align:center;">❌</td></tr>
-                            <tr><td style="padding:6px 8px;">المنتجات</td><td style="padding:6px 8px;text-align:center;">✅</td><td style="padding:6px 8px;text-align:center;">✅</td><td style="padding:6px 8px;text-align:center;">❌</td><td style="padding:6px 8px;text-align:center;">❌</td></tr>
-                            <tr><td style="padding:6px 8px;">التقارير</td><td style="padding:6px 8px;text-align:center;">✅</td><td style="padding:6px 8px;text-align:center;">✅</td><td style="padding:6px 8px;text-align:center;">✅</td><td style="padding:6px 8px;text-align:center;">❌</td></tr>
-                            <tr><td style="padding:6px 8px;">المصروفات</td><td style="padding:6px 8px;text-align:center;">✅</td><td style="padding:6px 8px;text-align:center;">✅</td><td style="padding:6px 8px;text-align:center;">❌</td><td style="padding:6px 8px;text-align:center;">❌</td></tr>
-                            <tr><td style="padding:6px 8px;">إلغاء طلبات</td><td style="padding:6px 8px;text-align:center;">✅</td><td style="padding:6px 8px;text-align:center;">✅</td><td style="padding:6px 8px;text-align:center;">❌</td><td style="padding:6px 8px;text-align:center;">❌</td></tr>
-                            <tr><td style="padding:6px 8px;">المستخدمين</td><td style="padding:6px 8px;text-align:center;">✅</td><td style="padding:6px 8px;text-align:center;">❌</td><td style="padding:6px 8px;text-align:center;">❌</td><td style="padding:6px 8px;text-align:center;">❌</td></tr>
-                            <tr><td style="padding:6px 8px;">إنهاء/بدء اليوم</td><td style="padding:6px 8px;text-align:center;">✅</td><td style="padding:6px 8px;text-align:center;">❌</td><td style="padding:6px 8px;text-align:center;">❌</td><td style="padding:6px 8px;text-align:center;">❌</td></tr>
+                            <tr><td style="padding:5px;">نظرة عامة</td><td style="padding:5px;text-align:center;">✅</td><td style="padding:5px;text-align:center;">✅</td><td style="padding:5px;text-align:center;">✅</td><td style="padding:5px;text-align:center;">❌</td></tr>
+                            <tr><td style="padding:5px;">المنتجات</td><td style="padding:5px;text-align:center;">✅</td><td style="padding:5px;text-align:center;">✅</td><td style="padding:5px;text-align:center;">❌</td><td style="padding:5px;text-align:center;">❌</td></tr>
+                            <tr><td style="padding:5px;">التقارير</td><td style="padding:5px;text-align:center;">✅</td><td style="padding:5px;text-align:center;">✅</td><td style="padding:5px;text-align:center;">✅</td><td style="padding:5px;text-align:center;">❌</td></tr>
+                            <tr><td style="padding:5px;">المصروفات</td><td style="padding:5px;text-align:center;">✅</td><td style="padding:5px;text-align:center;">✅</td><td style="padding:5px;text-align:center;">❌</td><td style="padding:5px;text-align:center;">❌</td></tr>
+                            <tr><td style="padding:5px;">المستخدمين</td><td style="padding:5px;text-align:center;">✅</td><td style="padding:5px;text-align:center;">❌</td><td style="padding:5px;text-align:center;">❌</td><td style="padding:5px;text-align:center;">❌</td></tr>
                         </tbody>
                     </table>
                 </div>
-                <!-- إضافة مستخدم -->
                 <div class="add-panel">
                     <div class="input-group"><label>الاسم</label><input type="text" id="user-name" class="input-field" placeholder="اسم المستخدم"></div>
                     <div class="input-group"><label>كلمة المرور</label><input type="text" id="user-pass" class="input-field" placeholder="أرقام أو حروف"></div>
@@ -414,8 +393,7 @@
                             <option value="admin">🔴 مدير كامل</option>
                             <option value="sales">🔵 مدير مبيعات</option>
                             <option value="reports">🟢 مشاهد تقارير</option>
-                            <!-- تمت إضافة خيار الكاشير -->
-                            <option value="cashier">🟠 كاشير (نقاط البيع)</option>
+                            <option value="cashier">🟠 كاشير</option>
                         </select>
                     </div>
                     <button class="btn-add" onclick="addUser()">➕ إضافة مستخدم</button>
@@ -426,6 +404,7 @@
     </div>
 
     <script>
+        // ===== إعدادات Firebase =====
         const firebaseConfig = { apiKey: "AIzaSyCoYT1ztpH200pb3BUOlYTbwguT49ShqRU", authDomain: "cashier-aacf5.firebaseapp.com", projectId: "cashier-aacf5", storageBucket: "cashier-aacf5.firebasestorage.app", messagingSenderId: "502467602972", appId: "1:502467602972:web:fb68b7dfc1b9eee50d0dd9", measurementId: "G-WV1ZM6WMH4" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
@@ -446,18 +425,14 @@
             return { dayNum: d.getDate(), dayName: dn[d.getDay()], full: d.getDate() + ' ' + mn[d.getMonth()] + ' ' + d.getFullYear() };
         }
 
-        /* ===== أسماء الصلاحيات بالعربي ===== */
-        // تم إضافة دور الكاشير
         const ROLE_NAMES = { admin: 'مدير كامل', sales: 'مدير مبيعات', reports: 'مشاهد تقارير', cashier: 'كاشير' };
         const ROLE_CSS = { admin: 'role-admin', sales: 'role-sales', reports: 'role-reports', cashier: 'role-cashier' };
 
-        /* ===== الصلاحيات لكل دور ===== */
         function getPermissions(role) {
             switch(role) {
                 case 'admin': return { dashboard: true, products: true, sales: true, users: true, expenses: true, cancelOrders: true, endDay: true };
                 case 'sales': return { dashboard: true, products: true, sales: true, users: false, expenses: true, cancelOrders: true, endDay: false };
                 case 'reports': return { dashboard: true, products: false, sales: true, users: false, expenses: false, cancelOrders: false, endDay: false };
-                // الكاشير ليس له صلاحيات الدخول للوحة التحكم
                 case 'cashier': return { dashboard: false, products: false, sales: false, users: false, expenses: false, cancelOrders: false, endDay: false };
                 default: return { dashboard: false, products: false, sales: false, users: false, expenses: false, cancelOrders: false, endDay: false };
             }
@@ -512,25 +487,37 @@
 
         async function saveField(fields) { try { await DOC_REF.set(fields, { merge: true }); updateConnUI(true); } catch (e) { console.error(e); updateConnUI(false); showToast("خطأ في الحفظ", "error"); } }
 
+        /* ===== Mobile Sidebar Toggle ===== */
+        function toggleSidebar() {
+            var sidebar = document.getElementById('sidebar');
+            var overlay = document.getElementById('sidebar-overlay');
+            var closeBtn = document.getElementById('close-sidebar-btn');
+            
+            if (sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('show');
+                if(window.innerWidth <= 768) closeBtn.style.display = 'none';
+            } else {
+                sidebar.classList.add('open');
+                overlay.classList.add('show');
+                if(window.innerWidth <= 768) closeBtn.style.display = 'block';
+            }
+        }
+
         /* ===== تحديث واجهة الصلاحيات ===== */
         function applyPermissions() {
             if (!currentUser) return;
             var perm = getPermissions(currentUser.role);
 
-            // السايدبار - تعطيل التبويبات
             document.getElementById('nav-dashboard').classList.toggle('nav-disabled', !perm.dashboard);
             document.getElementById('nav-products').classList.toggle('nav-disabled', !perm.products);
             document.getElementById('nav-sales').classList.toggle('nav-disabled', !perm.sales);
             document.getElementById('nav-users').classList.toggle('nav-disabled', !perm.users);
 
-            // إنهاء/بدء اليوم
             document.getElementById('end-day-btn-wrap').classList.toggle('hidden', !perm.endDay || appData.dayEnded);
             document.getElementById('start-day-btn-wrap').classList.toggle('hidden', !perm.endDay || !appData.dayEnded);
 
-            // أوفرلاي الصفحات (لما المستخدم يدخل صفحة مش عنده صلاحية)
             var isEnded = appData.dayEnded === true;
-
-            // المنتجات: أوفرلاي إذا لا صلاحية أو اليوم منتهي
             var prodBlock = !perm.products || isEnded;
             document.getElementById('products-overlay').classList.toggle('show', prodBlock);
             if (prodBlock) {
@@ -538,16 +525,18 @@
                 document.getElementById('products-overlay').innerHTML = '<div class="disabled-overlay-text">' + msg + '</div>';
             }
 
-            // المستخدمين: أوفرلاي إذا لا صلاحية
             var userBlock = !perm.users;
             document.getElementById('users-overlay').classList.toggle('show', userBlock);
 
-            // المصروفات: إخفاء إذا لا صلاحية أو اليوم منتهي
             var expBlock = !perm.expenses || isEnded;
             document.getElementById('expenses-add-panel').style.display = expBlock ? 'none' : 'flex';
 
-            // بطاقة المستخدم
             document.getElementById('cuc-name').innerText = currentUser.name;
+            // Mobile Header Role
+            if(document.getElementById('header-user-role')) {
+                document.getElementById('header-user-role').innerText = ROLE_NAMES[currentUser.role];
+            }
+
             var roleEl = document.getElementById('cuc-role');
             roleEl.innerText = ROLE_NAMES[currentUser.role] || currentUser.role;
             roleEl.className = 'cuc-role ' + (ROLE_CSS[currentUser.role] || '');
@@ -586,17 +575,17 @@
             applyPermissions();
         }
 
-        /* ===== إنهاء / بدء يوم ===== */
         async function endDay() {
             var perm = getPermissions(currentUser.role);
             if (!perm.endDay) return showToast("ليس لديك صلاحية", "error");
             var d = appData.businessDate || getTodayISO();
             var info = formatBusinessDate(d);
             var nd = addOneDay(d); var ninfo = formatBusinessDate(nd);
-            if (await showConfirm('⚠️ إنهاء يوم العمل؟\n\nاليوم: ' + info.full + ' (' + info.dayName + ')\nاليوم التالي: ' + ninfo.full + ' (' + ninfo.dayName + ')\n\nسيتم قفل الكاشير')) {
+            if (await showConfirm('⚠️ إنهاء يوم العمل؟\n\nاليوم: ' + info.full + '\nاليوم التالي: ' + ninfo.full + '\n\nسيتم قفل الكاشير')) {
                 appData.dayEnded = true; appData.dayEndedDate = d;
                 await saveField({ dayEnded: true, dayEndedDate: d });
                 showToast('🔒 تم إنهاء: ' + info.full, 'info');
+                if(window.innerWidth <= 768) toggleSidebar(); // Close sidebar on mobile
             }
         }
         async function startNewDay() {
@@ -604,14 +593,14 @@
             if (!perm.endDay) return showToast("ليس لديك صلاحية", "error");
             var old = appData.dayEndedDate || appData.businessDate || getTodayISO();
             var nw = addOneDay(old); var oi = formatBusinessDate(old); var ni = formatBusinessDate(nw);
-            if (await showConfirm('<div style="margin-bottom:12px;">اليوم المنتهي:</div><div class="old-date" style="font-size:1.2rem;margin-bottom:12px;">' + oi.full + '</div><div class="arrow">⬇</div><div style="margin:12px 0;">اليوم الجديد:</div><div class="new-date">' + ni.full + '</div>')) {
+            if (await showConfirm('بدء يوم جديد:\n' + ni.full)) {
                 appData.dayEnded = false; appData.dayEndedDate = null; appData.businessDate = nw;
                 await saveField({ dayEnded: false, dayEndedDate: null, businessDate: nw });
                 showToast('✅ بدأ يوم جديد: ' + ni.full, 'success');
+                if(window.innerWidth <= 768) toggleSidebar();
             }
         }
 
-        /* ===== Firebase ===== */
         function startFirebaseListener() {
             DOC_REF.onSnapshot((snap) => {
                 if (snap.exists) {
@@ -631,13 +620,11 @@
             }, (error) => { document.getElementById('loading-text').innerHTML = '<span style="color:red">فشل: ' + error.message + '</span>'; });
         }
 
-        /* ===== Session ===== */
         function checkSessionAndRender() {
             var s = localStorage.getItem('pos_session');
             if (s) {
                 try {
                     var u = JSON.parse(s);
-                    // التحقق: المستخدم لسه موجود؟
                     var found = (appData.users || []).find(x => x.id === u.id);
                     if (found) {
                         currentUser = { id: found.id, name: found.name, role: found.role };
@@ -655,7 +642,6 @@
             document.getElementById('login-overlay').style.display = 'none';
             document.getElementById('admin-app').classList.remove('hidden');
             document.getElementById('admin-app').classList.add('flex');
-            // لو أول تاب مش متاح، نروح لأول تاب متاح
             var perm = getPermissions(currentUser.role);
             if (!perm[currentTab]) {
                 if (perm.dashboard) switchTab('dashboard', document.getElementById('nav-dashboard'));
@@ -669,15 +655,13 @@
 
         function logout() { localStorage.removeItem('pos_session'); location.reload(); }
 
-        /* ===== Login ===== */
         function initLoginUI() {
             if (!appData) return;
             var grid = document.getElementById('user-selection');
             grid.innerHTML = '';
-            // نعرض كل المستخدمين اللي مش كاشيرين (اللي لهم صلاحية دخول الإدمن)
             var admins = appData.users.filter(u => u.role !== 'cashier');
             if (admins.length === 0) {
-                grid.innerHTML = '<div style="grid-column:span 2;color:var(--danger);line-height:2;">لا يوجد مستخدمين للإدمن<br><small>أضف من Firebase مباشرة مؤقتاً</small></div>';
+                grid.innerHTML = '<div style="grid-column:span 2;color:var(--danger);">لا يوجد مستخدمين للإدمن</div>';
                 return;
             }
             admins.forEach(u => {
@@ -708,12 +692,10 @@
                 isLoggedIn = true;
                 currentUser = { id: tempSelectedUser.id, name: tempSelectedUser.name, role: tempSelectedUser.role };
                 localStorage.setItem('pos_session', JSON.stringify({ id: currentUser.id }));
-                // نحفظ الـ id بس، ونقرأ البيانات من Firebase كل مرة (أمان أكبر)
                 showApp();
             } else { document.getElementById('login-error').innerText = "كلمة المرور غير صحيحة!"; enteredPass = ""; updatePassDisplay(); }
         }
 
-        /* ===== التنقل ===== */
         function switchTab(v, btn) {
             var perm = getPermissions(currentUser.role);
             if (!perm[v]) return showToast('ليس لديك صلاحية لهذا القسم', 'error');
@@ -722,6 +704,12 @@
             document.getElementById('view-' + v).classList.remove('hidden');
             document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
             if (btn) btn.classList.add('active');
+            
+            // Close mobile sidebar if open
+            if(window.innerWidth <= 768 && document.getElementById('sidebar').classList.contains('open')) {
+                toggleSidebar();
+            }
+            
             renderCurrentTab();
         }
         function renderCurrentTab() {
@@ -733,7 +721,6 @@
             else if (currentTab === 'users') renderUsersTable();
         }
 
-        /* ===== Dashboard ===== */
         function loadDashboardStats() {
             var bizDate = appData.businessDate || getTodayISO();
             var ts = (appData.sales||[]).filter(s => s.status!=='cancelled' && s.dateISO===bizDate);
@@ -753,71 +740,59 @@
             document.getElementById('current-date').innerText = info.full + ' - ' + info.dayName;
         }
 
-        /* ===== التقارير ===== */
         function setRange(type) { var t=new Date(); var y=t.getFullYear(),m=String(t.getMonth()+1).padStart(2,'0'),d=String(t.getDate()).padStart(2,'0'); var s,e; if(type==='today'){s=e=y+'-'+m+'-'+d;}else if(type==='week'){var dw=t.getDay()||7;var ws=new Date(t);ws.setDate(t.getDate()-dw+1);s=ws.toISOString().split('T')[0];e=y+'-'+m+'-'+d;}else if(type==='month'){s=y+'-'+m+'-01';e=y+'-'+m+'-'+new Date(y,parseInt(m),0).getDate();}else{s='2000-01-01';e='2099-12-31';} document.getElementById('date-start').value=s; document.getElementById('date-end').value=e; loadReportData(); }
         function loadReportData() {
             var ss=document.getElementById('date-start').value, es=document.getElementById('date-end').value;
-            document.getElementById('report-range-label').innerText='من '+ss+' إلى '+es;
-            var rr=0,sand=0; var rs=(appData.sales||[]).filter(s=>s.dateISO&&s.dateISO>=ss&&s.dateISO<=es);
+            var rr=0; var rs=(appData.sales||[]).filter(s=>s.dateISO&&s.dateISO>=ss&&s.dateISO<=es);
             document.getElementById('day-sales-body').innerHTML=rs.length===0?'<tr class="no-data-row"><td colspan="7">لا توجد</td></tr>':rs.map(s=>{var inv=s.invoiceNum?'#'+String(s.invoiceNum).padStart(5,'0'):'-';return '<tr data-clickable onclick="viewOrderDetails('+s.id+')"><td>'+s.id+'</td><td>'+inv+'</td><td>'+s.cashier+'</td><td>'+s.dateISO+'</td><td>'+s.items.length+' منتجات</td><td>'+s.total.toFixed(2)+'</td><td><span class="status-badge status-'+(s.status||'completed')+'">'+(s.status==='cancelled'?'ملغي':'مكتمل')+'</span></td></tr>';}).join('');
-            rs.forEach(s=>{if(s.status!=='cancelled'){rr+=s.total;(s.items||[]).forEach(i=>{if(i.cat==='سندوتشات'||(i.name&&i.name.includes('سندوتش')))sand+=i.price*i.qty;});}});
+            rs.forEach(s=>{if(s.status!=='cancelled')rr+=s.total;});
             var re=(appData.expenses||[]).filter(e=>e.date>=ss&&e.date<=es); var ret=re.reduce((a,e)=>a+e.amount,0);
             document.getElementById('day-expenses-body').innerHTML=re.length===0?'<tr class="no-data-row"><td colspan="4">لا توجد</td></tr>':re.map(e=>'<tr><td>'+e.desc+'</td><td>'+e.amount.toFixed(2)+'</td><td>'+e.date+'</td><td><button class="btn-sm btn-del" onclick="delExpense('+e.id+')">حذف</button></td></tr>').join('');
             document.getElementById('rep-revenue').innerText=rr.toFixed(2); document.getElementById('rep-expenses').innerText=ret.toFixed(2);
             var net=rr-ret; var ne=document.getElementById('rep-net'); ne.innerText=net.toFixed(2); ne.style.color=net>=0?'var(--success)':'var(--danger)';
-            document.getElementById('rep-sandwiches').innerText=sand.toFixed(2);
             var cn=(appData.sales||[]).filter(s=>s.status==='cancelled');
             document.getElementById('cancelled-sales-body').innerHTML=cn.length===0?'<tr class="no-data-row"><td colspan="5">لا توجد</td></tr>':cn.map(s=>{var inv=s.invoiceNum?'#'+String(s.invoiceNum).padStart(5,'0'):'-';return '<tr><td>'+s.id+'</td><td>'+inv+'</td><td>'+s.date+'</td><td>'+s.cashier+'</td><td>'+s.total.toFixed(2)+'</td></tr>';}).join('');
         }
         async function addExpense(){var p=getPermissions(currentUser.role);if(!p.expenses||appData.dayEnded)return showToast("غير مسموح","error");var d=document.getElementById('exp-desc').value.trim();var a=parseFloat(document.getElementById('exp-amount').value);if(!d||!a||a<=0){showToast("أكمل البيانات","error");return;}if(!appData.expenses)appData.expenses=[];appData.expenses.push({id:Date.now(),desc:d,amount:a,date:appData.businessDate||getTodayISO()});await saveField({expenses:appData.expenses});document.getElementById('exp-desc').value='';document.getElementById('exp-amount').value='';showToast("تم","success");}
         async function delExpense(id){if(!getPermissions(currentUser.role).expenses||appData.dayEnded)return showToast("غير مسموح","error");if(!(await showConfirm("حذف المصروف؟")))return;appData.expenses=(appData.expenses||[]).filter(e=>e.id!==id);await saveField({expenses:appData.expenses});showToast("تم","success");}
 
-        /* ===== تفاصيل الطلب ===== */
         function viewOrderDetails(id){var o=(appData.sales||[]).find(s=>s.id===id);if(!o)return;currentModalOrderId=id;document.getElementById('modal-order-id').innerText=o.id;document.getElementById('modal-date').innerText=o.date;document.getElementById('modal-cashier').innerText=o.cashier;document.getElementById('modal-total').innerText=o.total.toFixed(2)+' ج.م';document.getElementById('modal-status').innerHTML=o.status==='cancelled'?'<span class="status-badge status-cancelled">ملغي</span>':'<span class="status-badge status-completed">مكتمل</span>';document.getElementById('modal-items-list').innerHTML=(o.items||[]).map(i=>'<div class="order-detail-row"><span>'+i.name+' (×'+i.qty+')</span><span>'+(i.price*i.qty).toFixed(2)+' ج.م</span></div>').join('');document.getElementById('modal-cancel-area').style.display=o.status==='cancelled'?'none':'block';if(!getPermissions(currentUser.role).cancelOrders)document.getElementById('modal-cancel-area').style.display='none';document.getElementById('order-modal').style.display="flex";}
         function closeOrderModal(){document.getElementById('order-modal').style.display="none";}
         async function cancelOrderFromModal(){if(!getPermissions(currentUser.role).cancelOrders)return showToast("ليس لديك صلاحية","error");if(appData.dayEnded)return showToast("اليوم منتهي","error");if(!(await showConfirm("إلغاء الطلب؟")))return;var idx=(appData.sales||[]).findIndex(s=>s.id===currentModalOrderId);if(idx!==-1){appData.sales[idx].status='cancelled';await saveField({sales:appData.sales});showToast("تم","success");closeOrderModal();}}
 
-        /* ===== المنتجات ===== */
-        function renderCategoryManager(){var cats=(appData.categories||[]).filter(c=>c!=='الكل');document.getElementById('new-cat').innerHTML=cats.map(c=>'<option value="'+c+'">'+c+'</option>').join('');document.getElementById('cat-tags-container').innerHTML=cats.map(c=>'<span style="background:rgba(99,102,241,0.15);color:var(--primary);padding:5px 12px;border-radius:15px;cursor:pointer;font-size:0.88rem;" onclick="delCat(\''+c+'\')">'+c+' ❌</span>').join('');}
+        function renderCategoryManager(){var cats=(appData.categories||[]).filter(c=>c!=='الكل');document.getElementById('new-cat').innerHTML=cats.map(c=>'<option value="'+c+'">'+c+'</option>').join('');document.getElementById('cat-tags-container').innerHTML=cats.map(c=>'<span style="background:rgba(99,102,241,0.15);color:var(--primary);padding:4px 10px;border-radius:15px;cursor:pointer;font-size:0.8rem;" onclick="delCat(\''+c+'\')">'+c+' ❌</span>').join('');}
         async function addCategory(){if(!getPermissions(currentUser.role).products||appData.dayEnded)return;var n=document.getElementById('new-cat-name').value.trim();if(!n){showToast("اكتب اسم","error");return;}if((appData.categories||[]).includes(n)){showToast("موجود","error");return;}if(!appData.categories)appData.categories=[];appData.categories.push(n);await saveField({categories:appData.categories});document.getElementById('new-cat-name').value='';showToast("تم","success");}
         async function delCat(name){if(!getPermissions(currentUser.role).products||appData.dayEnded)return;if(!(await showConfirm('حذف "'+name+'"?')))return;appData.categories=(appData.categories||[]).filter(c=>c!==name);await saveField({categories:appData.categories});showToast("تم","success");}
         function filterProducts(){var q=document.getElementById('search-prod').value.toLowerCase();renderProductsGrid((appData.products||[]).filter(p=>p.name.toLowerCase().includes(q)));}
-        function renderProductsGrid(list){var grid=document.getElementById('admin-products-grid');if(list.length===0){grid.innerHTML='<div style="grid-column:span 3;text-align:center;color:var(--text-muted);padding:40px;">لا توجد</div>';return;}grid.innerHTML=list.map(p=>'<div class="product-card"><div class="p-cat" style="background:rgba(99,102,241,0.1);color:var(--primary);padding:2px 8px;border-radius:4px;display:inline-block;margin-bottom:4px;">'+(p.cat||'')+'</div><div class="p-name" style="font-size:1.15rem;margin:4px 0;">'+p.name+'</div><div class="p-price" style="font-size:1.2rem;">'+p.price.toFixed(2)+' ج.م</div><div class="p-actions"><button class="btn-sm btn-edit" onclick="openEditProd('+p.id+')">تعديل</button><button class="btn-sm btn-del" onclick="delProd('+p.id+')">حذف</button></div></div>').join('');}
+        function renderProductsGrid(list){var grid=document.getElementById('admin-products-grid');if(list.length===0){grid.innerHTML='<div style="grid-column:span 2;text-align:center;color:var(--text-muted);padding:30px;">لا توجد</div>';return;}grid.innerHTML=list.map(p=>'<div class="product-card"><div class="p-cat" style="background:rgba(99,102,241,0.1);color:var(--primary);padding:2px 6px;border-radius:4px;display:inline-block;margin-bottom:4px;font-size:0.7rem;">'+(p.cat||'')+'</div><div class="p-name" style="font-size:1rem;margin:4px 0;">'+p.name+'</div><div class="p-price" style="font-size:1.1rem;">'+p.price.toFixed(2)+' ج.م</div><div class="p-actions"><button class="btn-sm btn-edit" onclick="openEditProd('+p.id+')">تعديل</button><button class="btn-sm btn-del" onclick="delProd('+p.id+')">حذف</button></div></div>').join('');}
         async function addProduct(){if(!getPermissions(currentUser.role).products||appData.dayEnded)return;var n=document.getElementById('new-name').value.trim();var p=parseFloat(document.getElementById('new-price').value);var c=document.getElementById('new-cat').value;if(!n||!p||p<=0){showToast("بيانات ناقصة","error");return;}if(!appData.products)appData.products=[];appData.products.push({id:Date.now(),name:n,price:p,cat:c});await saveField({products:appData.products});document.getElementById('new-name').value='';document.getElementById('new-price').value='';showToast("تم","success");}
         async function delProd(id){if(!getPermissions(currentUser.role).products||appData.dayEnded)return;if(!(await showConfirm("حذف المنتج؟")))return;appData.products=(appData.products||[]).filter(p=>p.id!==id);await saveField({products:appData.products});showToast("تم","success");}
         function openEditProd(id){if(!getPermissions(currentUser.role).products||appData.dayEnded)return;var p=(appData.products||[]).find(x=>x.id===id);if(!p)return;editingProductId=id;document.getElementById('edit-name').value=p.name;document.getElementById('edit-price').value=p.price;document.getElementById('edit-cat').innerHTML=(appData.categories||[]).filter(c=>c!=='الكل').map(c=>'<option value="'+c+'"'+(c===p.cat?' selected':'')+'>'+c+'</option>').join('');document.getElementById('edit-modal').style.display="flex";}
         function closeEditModal(){document.getElementById('edit-modal').style.display="none";editingProductId=null;}
         async function saveEditProduct(){var n=document.getElementById('edit-name').value.trim();var p=parseFloat(document.getElementById('edit-price').value);var c=document.getElementById('edit-cat').value;if(!n||!p||p<=0){showToast("خاطئ","error");return;}var pr=(appData.products||[]).find(x=>x.id===editingProductId);if(pr){pr.name=n;pr.price=p;pr.cat=c;}await saveField({products:appData.products});closeEditModal();showToast("تم","success");}
 
-        /* ===== المستخدمين ===== */
         function renderUsersTable(){
             if(!appData)return;
             document.getElementById('users-body').innerHTML=(appData.users||[]).map(function(u){
                 var roleBadge='<span class="status-badge '+(ROLE_CSS[u.role]||'role-admin')+'">'+(ROLE_NAMES[u.role]||u.role)+'</span>';
                 var canManage=getPermissions(currentUser.role).users;
-                // لا أحد يقدر يعدل أو يحذف المدير العام (id=99) غير المدير العام نفسه
                 var isMainAdmin=u.id===99&&u.role==='admin';
                 var isSelf=u.id===currentUser.id;
-
-                var passCell='<div id="pass-cell-'+u.id+'" style="display:flex;align-items:center;gap:5px;"><span style="font-family:monospace;letter-spacing:3px;">'+u.pass+'</span></div><div id="pass-edit-'+u.id+'" style="display:none;align-items:center;gap:5px;"><input type="text" id="pass-new-'+u.id+'" class="input-field" style="width:90px;padding:5px 8px;" value="'+u.pass+'"></div>';
+                var passCell='<div id="pass-cell-'+u.id+'" style="display:flex;align-items:center;gap:5px;"><span style="font-family:monospace;letter-spacing:3px;">'+u.pass+'</span></div><div id="pass-edit-'+u.id+'" style="display:none;align-items:center;gap:5px;"><input type="text" id="pass-new-'+u.id+'" class="input-field" style="width:80px;padding:4px 6px;font-size:0.8rem;" value="'+u.pass+'"></div>';
                 var passBtns=canManage&&!isMainAdmin?'<div id="pass-btns-'+u.id+'"><button class="btn-sm btn-edit" onclick="startEditPass('+u.id+')">🔑</button></div>':'-';
                 var roleBtns=canManage&&!isMainAdmin&&!isSelf?'<button class="btn-sm btn-edit" onclick="startEditRole('+u.id+')" style="background:var(--orange);flex:1;">⚙️</button>':'-';
-                var delBtns=canManage&&!isMainAdmin&&!isSelf?'<button class="btn-sm btn-del" onclick="delUser('+u.id+')">حذف</button>':'<span style="color:var(--text-muted);font-size:0.78rem;">—</span>';
-
+                var delBtns=canManage&&!isMainAdmin&&!isSelf?'<button class="btn-sm btn-del" onclick="delUser('+u.id+')">حذف</button>':'<span style="color:var(--text-muted);font-size:0.7rem;">—</span>';
                 return '<tr><td style="font-weight:bold;">'+u.name+'</td><td>'+roleBadge+'</td><td>'+passCell+'</td><td>'+passBtns+'</td><td>'+roleBtns+'</td><td>'+delBtns+'</td></tr>';
             }).join('');
         }
-
-        function startEditPass(id){document.getElementById('pass-cell-'+id).style.display='none';document.getElementById('pass-edit-'+id).style.display='flex';document.getElementById('pass-btns-'+id).innerHTML='<button class="btn-sm" style="background:var(--success)" onclick="saveNewPass('+id+')">✓</button> <button class="btn-sm btn-del" onclick="cancelEditPass('+id+')">✗</button>';document.getElementById('pass-new-'+id).focus();}
-        function cancelEditPass(id){document.getElementById('pass-cell-'+id).style.display='flex';document.getElementById('pass-edit-'+id).style.display='none';document.getElementById('pass-btns-'+id).innerHTML='<button class="btn-sm btn-edit" onclick="startEditPass('+id+')">🔑</button>';}
+        function startEditPass(id){document.getElementById('pass-cell-'+id).style.display='none';document.getElementById('pass-edit-'+id).style.display='flex';document.getElementById('pass-btns-'+id).innerHTML='<button class="btn-sm" style="background:var(--success)" onclick="saveNewPass('+id+')">✓</button> <button class="btn-sm btn-del" onclick="cancelEditPass('+id+')">✗</button>';}
+        function cancelEditPass(id){document.getElementById('pass-cell-'+id).style.display='flex';document.getElementById('pass-edit-'+id).style.display='none';document.getElementById('pass-btns-'+id).innerHTML='<button class="btn-sm btn-edit" onclick="startEditPass('+u.id+')">🔑</button>';}
         async function saveNewPass(id){var p=document.getElementById('pass-new-'+id).value.trim();if(!p){showToast("أدخل الباسورد","error");return;}var u=(appData.users||[]).find(x=>x.id===id);if(u){u.pass=p;await saveField({users:appData.users});showToast("تم تغيير الباسورد","success");}}
-
-        /* تعديل صلاحية مستخدم - تمت إضافة خيار الكاشير */
         function startEditRole(id){
             var u=(appData.users||[]).find(x=>x.id===id);
             if(!u)return;
             var cell=document.querySelector('tr td:nth-child(5)');
-            cell.innerHTML='<select id="role-select-'+id+'" class="input-field" style="padding:5px 8px;font-size:0.85rem;"><option value="admin"'+(u.role==='admin'?' selected':'')+'>🔴 مدير كامل</option><option value="sales"'+(u.role==='sales'?' selected':'')+'>🔵 مدير مبيعات</option><option value="reports"'+(u.role==='reports'?' selected':'')+'>🟢 مشاهد تقارير</option><option value="cashier"'+(u.role==='cashier'?' selected':'')+'>🟠 كاشير</option></select><button class="btn-sm" style="background:var(--success);margin-right:5px;" onclick="saveNewRole('+id+')">✓</button><button class="btn-sm btn-del" onclick="renderUsersTable()">✗</button>';
+            cell.innerHTML='<select id="role-select-'+id+'" class="input-field" style="padding:4px 6px;font-size:0.8rem;"><option value="admin"'+(u.role==='admin'?' selected':'')+'>🔴 مدير</option><option value="sales"'+(u.role==='sales'?' selected':'')+'>🔵 مبيعات</option><option value="reports"'+(u.role==='reports'?' selected':'')+'>🟢 تقارير</option><option value="cashier"'+(u.role==='cashier'?' selected':'')+'>🟠 كاشير</option></select><button class="btn-sm" style="background:var(--success);margin-right:5px;" onclick="saveNewRole('+id+')">✓</button><button class="btn-sm btn-del" onclick="renderUsersTable()">✗</button>';
         }
         async function saveNewRole(id){
             var sel=document.getElementById('role-select-'+id);
@@ -827,12 +802,10 @@
                 u.role=sel.value;
                 await saveField({users:appData.users});
                 showToast('تم تغيير صلاحية '+u.name,'success');
-                // لو المستخدم عدل نفسه، نحدّث currentUser
                 if(id===currentUser.id){currentUser.role=u.role;applyPermissions();}
                 renderUsersTable();
             }
         }
-
         async function addUser(){
             if(!getPermissions(currentUser.role).users)return;
             var n=document.getElementById('user-name').value.trim();
@@ -844,7 +817,7 @@
             appData.users.push({id:Date.now(),name:n,pass:p,role:r});
             await saveField({users:appData.users});
             document.getElementById('user-name').value='';document.getElementById('user-pass').value='';
-            showToast('تم إضافة: '+n+' ('+ROLE_NAMES[r]+')','success');
+            showToast('تم إضافة: '+n,'success');
         }
         async function delUser(id){
             if(!getPermissions(currentUser.role).users)return;
@@ -854,26 +827,12 @@
             showToast("تم الحذف","success");
         }
 
-        /* ===== إغلاق ===== */
         window.addEventListener('click',function(e){if(e.target===document.getElementById('order-modal'))closeOrderModal();if(e.target===document.getElementById('edit-modal'))closeEditModal();if(e.target===document.getElementById('confirm-modal')){document.getElementById('confirm-modal').style.display='none';if(confirmResolve)confirmResolve(false);confirmResolve=null;}});
         document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeOrderModal();closeEditModal();document.getElementById('confirm-modal').style.display='none';if(confirmResolve)confirmResolve(false);confirmResolve=null;}});
 
         document.getElementById('date-start').value=getTodayISO();
         document.getElementById('date-end').value=getTodayISO();
         startFirebaseListener();
-        function toggleSidebar() {
-    const sidebar = document.querySelector('.sidebar');
-    sidebar.classList.toggle('active');
-}
-
-// إغلاق القائمة تلقائياً عند الضغط على أي عنصر في الجوال
-document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', () => {
-        if (window.innerWidth <= 768) {
-            document.querySelector('.sidebar').classList.remove('active');
-        }
-    });
-});
     </script>
 </body>
-</html> 
+</html>
